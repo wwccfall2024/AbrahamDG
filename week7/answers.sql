@@ -77,3 +77,26 @@ FROM items i
     FROM equipped
   ) AS total_items ON i.item_id = total_items.item_id
 GROUP BY i.item_id, i.name;
+
+-- Team items --
+CREATE VIEW team_items AS
+SELECT i.item, i.name
+FROM items i
+JOIN (
+  SELECT item_id
+  FROM inventory inv
+  WHERE inv.character_id IN (
+        SELECT character_id
+        FROM team_members
+    )
+
+  UNION 
+
+  SELECT item_id
+  FROM equipped eq
+  WHERE eq.character_id IN (
+        SELECT character_id
+        FROM team_members
+    )
+) AS combined_player_items ON i.item_id = combined_player_items.item_id
+GROUP BY i.item_id, i.name;
