@@ -80,7 +80,7 @@ GROUP BY i.item_id, i.name;
 
 -- Team items --
 CREATE VIEW team_items AS
-SELECT i.item, i.name
+SELECT i.item_id, i.name
 FROM items i
 JOIN (
   SELECT item_id
