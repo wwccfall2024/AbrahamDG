@@ -35,7 +35,7 @@ CREATE TABLE teams(
   name VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE team_member(
+CREATE TABLE team_members(
   team_member_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
   team_id INT UNSIGNED NOT NULL,
   character_id INT UNSIGNED NOT NULL,
