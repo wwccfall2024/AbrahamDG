@@ -13,7 +13,7 @@ CREATE TABLE characters(
   character_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
   player_id INT UNSIGNED NOT NULL,
   name VARCHAR(30) NOT NULL,
-  `level` UNSIGNED TINYINT,
+  `level` TINYINT UNSIGNED,
   CONSTRAINT fk_characters_player FOREIGN KEY (player_id) REFERENCES players(player_id)
 );
 
@@ -25,8 +25,8 @@ CREATE TABLE winners(
 
 CREATE TABLE character_stats(
   character_id INT UNSIGNED NOT NULL,
-  health UNSIGNED TINYINT,
-  armor UNSIGNED TINYINT,
+  health TINYINT UNSIGNED,
+  armor TINYINT UNSIGNED,
   CONSTRAINT fk_character_stats_stats FOREIGN KEY (character_id) REFERENCES characters(character_id)
 );
 
@@ -46,8 +46,8 @@ CREATE TABLE team_member(
 CREATE TABLE items(
   item_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
   name VARCHAR(30) NOT NULL,
-  armor UNSIGNED TINYINT,
-  damage UNSIGNED TINYINT
+  armor TINYINT UNSIGNED,
+  damage TINYINT
 );
 CREATE TABLE inventory(
   inventory_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
