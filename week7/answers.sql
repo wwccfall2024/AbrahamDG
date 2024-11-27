@@ -75,6 +75,5 @@ FROM items i
 
     SELECT item_id, character_id
     FROM equipped
-  ) AS total_items
-JOIN items i ON i.items_id = total_items.item_id
+  ) AS total_items ON i.items_id = total_items.item_id
 GROUP BY i.item_id, i.name;
