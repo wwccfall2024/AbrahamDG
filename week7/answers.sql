@@ -100,3 +100,37 @@ JOIN (
     )
 ) AS combined_player_items ON i.item_id = combined_player_items.item_id
 GROUP BY i.item_id, i.name;
+
+
+-- Function for a --
+DELIMITER ;;
+
+CREATE FUNCTION armor_total(character_id INT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    -- Declare variables for base armor and equipped armor -- 
+    DECLARE base_armor INT DEFAULT 0;
+    DECLARE equipped_armor INT DEFAULT 0;
+
+    -- Get base armor from character_stats --
+    SELECT COALESCE(armor, 0) INTO base_armor
+    FROM character_stats
+    WHERE character_id = character_id;
+
+    -- Get total armor from equipped items --
+    SELECT COALESCE(SUM(armor), 0) INTO equipped_armor
+    FROM items
+    WHERE item_id IN (
+        SELECT item_id
+        FROM equipped
+        WHERE character_id = character_id
+    );
+
+    -- Return the sum of base armor and equipped armor --
+    RETURN base_armor + equipped_armor;
+END;;
+
+DELIMITER ;
+
+
