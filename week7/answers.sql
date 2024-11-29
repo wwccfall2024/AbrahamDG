@@ -152,7 +152,7 @@ BEGIN
   --attacking item damage
   SELECT damage INTO damage
   FROM items
-  WHERE item_id = id_of_equipped_item_used_for_attack;
+  WHERE items.item_id = id_of_equipped_item_used_for_attack;
   
   -- calc effective damage
    SET effective_damage = damage - armor;
