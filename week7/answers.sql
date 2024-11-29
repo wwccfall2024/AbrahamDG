@@ -187,3 +187,85 @@ BEGIN
 END;;
 
 DELIMITER ;
+
+-- equip procedure --
+DELIMETER ;; 
+
+CREATE PROCEDURE equip (IN inventory_id INT)
+  
+BEGIN
+    --Insert the item from inventory into equipped
+    INSERT INTO equipped (character_id, item_id)
+    SELECT character_id, item_id
+    FROM inventory inv
+    WHERE inv.inventory_id = inventory_id;
+
+    -- Delete the item from inventory
+    DELETE FROM inventory
+    WHERE inv.inventory_id = inventory_id;
+END;;  
+DELIMITER ; 
+
+
+DELIMETER ;;
+-- unequip -- 
+CREATE PROCEDURE unequip (IN equipped_id INT)
+BEGIN
+  INSERT INTO inventory (character_id,item_id)
+  SELECT character_id, item_id
+  FROM equipped eq
+  WHERE eq.equipped_id = equipped_id
+-- Delete from equipped
+  DELETE FROM equipped
+  WHERE eq.equipped_id = equipped_id;
+END;;
+
+DELIMETER ;
+
+
+
+-- winners table update
+DELIMETER ;;
+CREATE PROCEDURE set_winners (IN team_id INT)
+BEGIN
+  -- Declare variables for cursor
+    DECLARE done INT DEFAULT 0;
+    DECLARE char_id INT;
+    DECLARE char_name VARCHAR(30);
+
+    -- Declare a cursor for fetching team members
+    DECLARE team_cursor CURSOR FOR
+        SELECT c.character_id, c.name
+        FROM characters c
+        INNER JOIN team_members tm ON c.character_id = tm.character_id
+        WHERE tm.team_id = team_id_param;
+
+    -- Declare a handler for the end of the cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Clear the winners table
+    DELETE FROM winners;
+
+    -- Open the cursor
+    OPEN team_cursor;
+
+    -- Loop through each character in the cursor
+    FETCH team_cursor INTO char_id, char_name;
+
+    WHILE done = 0 DO
+        -- Insert the character into the winners table
+        INSERT INTO winners (character_id, name)
+        VALUES (char_id, char_name);
+
+        -- Fetch the next row
+        FETCH team_cursor INTO char_id, char_name;
+    END WHILE;
+
+    -- Close the cursor
+    CLOSE team_cursor;
+END;
+
+  
+DELIMETER ; 
+
+
