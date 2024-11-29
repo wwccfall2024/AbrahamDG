@@ -152,7 +152,7 @@ SET armor = armor_total(id_of_character_being_attacked);
 --attacking item damage --
 SELECT damage INTO damage
 FROM items
-WHERE item_id = d_of_equipped_item_used_for_attack
+WHERE item_id = d_of_equipped_item_used_for_attack;
 
 -- calc effective damage --
  SET effective_damage = damage - armor;
