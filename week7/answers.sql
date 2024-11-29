@@ -141,49 +141,49 @@ CREATE PROCEDURE attack(
   IN id_of_equipped_item_used_for_attack INT
   )
 BEGIN
-DECLARE armor INT DEFAULT 0;
-DECLARE damage INT DEFAULT 0;
-DECLARE effective_damage INT DEFAULT 0;
-DECLARE current_health INT DEFAULT 0;
-DECLARE new_health INT DEFAULT 0;
-
-SET armor = armor_total(id_of_character_being_attacked);
-
---attacking item damage --
-SELECT damage INTO damage
-FROM items
-WHERE item_id = d_of_equipped_item_used_for_attack;
-
--- calc effective damage --
- SET effective_damage = damage - armor;
--- if statement to make sure that the ED is negative so no damage delt
- IF effective_damage <= 0 THEN
-        LEAVE attack;
-    END IF;
-
--- current health of attacked player -- 
- SELECT health INTO current_health
-    FROM character_stats
-    WHERE character_id = id_of_character_being_attacked;
-
--- calc new health of player -- 
-SET new_health = current_health - effective_damage;
-
---Delete player from the user base -- 
-
- IF new_health > 0 THEN
-        -- Character survives, update their health
-        UPDATE character_stats
-        SET health = new_health
-        WHERE character_id = id_of_character_being_attacked;
-    ELSE
-        -- Character dies, remove them and their related data
-        DELETE FROM characters WHERE character_id = id_of_character_being_attacked;
-        DELETE FROM character_stats WHERE character_id = id_of_character_being_attacked;
-        DELETE FROM inventory WHERE character_id = id_of_character_being_attacked;
-        DELETE FROM equipped WHERE character_id = id_of_character_being_attacked;
-        DELETE FROM team_members WHERE character_id = id_of_character_being_attacked;
-    END IF;
+  DECLARE armor INT DEFAULT 0;
+  DECLARE damage INT DEFAULT 0;
+  DECLARE effective_damage INT DEFAULT 0;
+  DECLARE current_health INT DEFAULT 0;
+  DECLARE new_health INT DEFAULT 0;
+  
+  SET armor = armor_total(id_of_character_being_attacked);
+  
+  --attacking item damage --
+  SELECT damage INTO damage
+  FROM items
+  WHERE item_id = id_of_equipped_item_used_for_attack;
+  
+  -- calc effective damage --
+   SET effective_damage = damage - armor;
+  -- if statement to make sure that the ED is negative so no damage delt
+   IF effective_damage <= 0 THEN
+          LEAVE attack;
+      END IF;
+  
+  -- current health of attacked player -- 
+   SELECT health INTO current_health
+      FROM character_stats
+      WHERE character_id = id_of_character_being_attacked;
+  
+  -- calc new health of player -- 
+  SET new_health = current_health - effective_damage;
+  
+  --Delete player from the user base -- 
+  
+   IF new_health > 0 THEN
+          -- Character survives, update their health
+          UPDATE character_stats
+          SET health = new_health
+          WHERE character_id = id_of_character_being_attacked;
+      ELSE
+          -- Character dies, remove them and their related data
+          DELETE FROM characters WHERE character_id = id_of_character_being_attacked;
+          DELETE FROM character_stats WHERE character_id = id_of_character_being_attacked;
+          DELETE FROM inventory WHERE character_id = id_of_character_being_attacked;
+          DELETE FROM equipped WHERE character_id = id_of_character_being_attacked;
+          DELETE FROM team_members WHERE character_id = id_of_character_being_attacked;
+      END IF;
 END;;
 
 DELIMITER ;
