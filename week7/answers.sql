@@ -136,8 +136,11 @@ DELIMITER ;
 -- create procedures for characgters -- 
 DELIMITER ;;
 
-CREATE PROCEDURE attack(IN id_of_character_being_attacked DEFAULT 0 ,IN id_of_equipped_item_used_for_attack DEFAULT 0)
-  
+CREATE PROCEDURE attack(
+  IN id_of_character_being_attacked INT,
+  IN id_of_equipped_item_used_for_attack INT
+  )
+BEGIN
 DECLARE armor INT DEFAULT 0;
 DECLARE damage INT DEFAULT 0;
 DECLARE effective_damage INT DEFAULT 0;
