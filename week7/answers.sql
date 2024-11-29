@@ -102,23 +102,23 @@ JOIN (
 GROUP BY i.item_id, i.name;
 
 
--- Function for a --
+-- Function for armor
 DELIMITER ;;
 
 CREATE FUNCTION armor_total(character_id INT)
 RETURNS INT
 DETERMINISTIC
 BEGIN
-    -- Declare variables for base armor and equipped armor -- 
+    -- Declare variables for base armor and equipped armor
     DECLARE base_armor INT DEFAULT 0;
     DECLARE equipped_armor INT DEFAULT 0;
 
-    -- Get base armor from character_stats --
+    -- Get base armor from character_stats
     SELECT COALESCE(armor, 0) INTO base_armor
     FROM character_stats
     WHERE character_id = character_id;
 
-    -- Get total armor from equipped items --
+    -- Get total armor from equipped items
     SELECT COALESCE(SUM(armor), 0) INTO equipped_armor
     FROM items
     WHERE item_id IN (
@@ -127,13 +127,13 @@ BEGIN
         WHERE character_id = character_id
     );
 
-    -- Return the sum of base armor and equipped armor --
+    -- Return the sum of base armor and equipped armor
     RETURN base_armor + equipped_armor;
 END;;
 
 DELIMITER ;
 
--- create procedures for characgters -- 
+-- create procedures for characgters 
 DELIMITER ;;
 
 CREATE PROCEDURE attack(
@@ -149,27 +149,27 @@ BEGIN
   
   SET armor = armor_total(id_of_character_being_attacked);
   
-  --attacking item damage --
+  --attacking item damage
   SELECT damage INTO damage
   FROM items
   WHERE item_id = id_of_equipped_item_used_for_attack;
   
-  -- calc effective damage --
+  -- calc effective damage
    SET effective_damage = damage - armor;
   -- if statement to make sure that the ED is negative so no damage delt
    IF effective_damage <= 0 THEN
           LEAVE attack;
       END IF;
   
-  -- current health of attacked player -- 
+  -- current health of attacked player
    SELECT health INTO current_health
       FROM character_stats
       WHERE character_id = id_of_character_being_attacked;
   
-  -- calc new health of player -- 
+  -- calc new health of player
   SET new_health = current_health - effective_damage;
   
-  --Delete player from the user base -- 
+  --Delete player from the user base
   
    IF new_health > 0 THEN
           -- Character survives, update their health
@@ -188,7 +188,7 @@ END;;
 
 DELIMITER ;
 
--- equip procedure --
+-- equip procedure
 DELIMETER ;; 
 
 CREATE PROCEDURE equip (IN inventory_id INT)
