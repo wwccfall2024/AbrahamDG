@@ -158,32 +158,28 @@ BEGIN
    SET effective_damage = damage - armor;
   -- if statement to make sure that the ED is negative so no damage delt
    IF effective_damage <= 0 THEN
-          LEAVE attack;
-      END IF;
-  
-  -- current health of attacked player
-   SELECT health INTO current_health
+      SELECT health INTO current_health
       FROM character_stats
       WHERE character_id = id_of_character_being_attacked;
   
-  -- calc new health of player
-  SET new_health = current_health - effective_damage;
+      -- Calculate new health of the character
+      SET new_health = current_health - effective_damage;
   
-  --Delete player from the user base
-  
-   IF new_health > 0 THEN
-          -- Character survives, update their health
-          UPDATE character_stats
-          SET health = new_health
-          WHERE character_id = id_of_character_being_attacked;
+      -- Update health or delete character if they die
+      IF new_health > 0 THEN
+        -- Character survives, update their health
+        UPDATE character_stats
+        SET health = new_health
+        WHERE character_id = id_of_character_being_attacked;
       ELSE
-          -- Character dies, remove them and their related data
-          DELETE FROM characters WHERE character_id = id_of_character_being_attacked;
-          DELETE FROM character_stats WHERE character_id = id_of_character_being_attacked;
-          DELETE FROM inventory WHERE character_id = id_of_character_being_attacked;
-          DELETE FROM equipped WHERE character_id = id_of_character_being_attacked;
-          DELETE FROM team_members WHERE character_id = id_of_character_being_attacked;
+        -- Character dies, remove them and their related data
+        DELETE FROM inventory WHERE character_id = id_of_character_being_attacked;
+        DELETE FROM equipped WHERE character_id = id_of_character_being_attacked;
+        DELETE FROM team_members WHERE character_id = id_of_character_being_attacked;
+        DELETE FROM character_stats WHERE character_id = id_of_character_being_attacked;
+        DELETE FROM characters WHERE character_id = id_of_character_being_attacked;
       END IF;
+    END IF;
 END;;
 
 DELIMITER ;
