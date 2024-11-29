@@ -134,7 +134,7 @@ END;;
 DELIMITER ;
 
 -- create procedures for characgters -- 
-DELIMETER ;;
+DELIMITER ;;
 
 CREATE PROCEDURE attack(IN id_of_character_being_attacked DEFAULT 0 ,IN id_of_equipped_item_used_for_attack DEFAULT 0)
   
@@ -183,4 +183,4 @@ SET new_health = current_health - effective_damage;
     END IF;
 END;;
 
-DELIMETER ;
+DELIMITER ;
