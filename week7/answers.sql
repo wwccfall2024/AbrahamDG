@@ -101,9 +101,9 @@ JOIN (
 ) AS combined_player_items ON i.item_id = combined_player_items.item_id
 GROUP BY i.item_id, i.name;
 
-DELIMITER ;;
--- Function for armor
 
+DELIMITER $$
+-- Function for armor
 CREATE FUNCTION armor_total(character_id INT)
 RETURNS INT
 DETERMINISTIC
@@ -130,12 +130,12 @@ BEGIN
     -- Return the sum of base armor and equipped armor
     SET total_armor = character_stats_armor + equipped_armor;
     RETURN total_armor;
-END;; 
+END$$ 
 
 DELIMITER ;
 
 -- create procedures for characters 
-DELIMITER ;;
+DELIMITER $$
 
 CREATE PROCEDURE attack (
   IN id_of_character_being_attacked INT,
@@ -152,9 +152,9 @@ BEGIN
   
   
   --attacking item damage
-  SELECT items.damage INTO damage
+  SELECT damage INTO damage
   FROM items
-  WHERE items.item_id = id_of_equipped_item_used_for_attack;
+  WHERE item_id = id_of_equipped_item_used_for_attack;
   
   -- calc effective damage
    SET effective_damage = damage - armor;
@@ -182,12 +182,12 @@ BEGIN
         DELETE FROM characters WHERE character_id = id_of_character_being_attacked;
       END IF;
     END IF;
-END;;
+END$$
 
 DELIMITER ;
 
 -- equip procedure
-DELIMITER ;; 
+DELIMITER $$ 
 
 CREATE PROCEDURE equip (IN inventory_id INT)
   
@@ -201,11 +201,11 @@ BEGIN
     -- Delete the item from inventory
     DELETE FROM inventory
     WHERE inv.inventory_id = inventory_id;
-END;;  
+END$$  
 DELIMITER ; 
 
 
-DELIMITER ;;
+DELIMITER $$
 -- unequip -- 
 CREATE PROCEDURE unequip (IN equipped_id INT)
 BEGIN
@@ -216,14 +216,14 @@ BEGIN
 -- Delete from equipped
   DELETE FROM equipped
   WHERE eq.equipped_id = equipped_id;
-END;;
+END$$
 
 DELIMETER ;
 
 
 
 -- winners table update
-DELIMITER ;;
+DELIMITER $$
 CREATE PROCEDURE set_winners (IN team_id INT)
 BEGIN
   -- Declare variables for cursor
@@ -261,7 +261,7 @@ BEGIN
 
     -- Close the cursor
     CLOSE team_cursor;
-END;;
+END$$
 
 DELIMITER ; 
 
