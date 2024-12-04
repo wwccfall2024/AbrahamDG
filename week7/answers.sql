@@ -134,7 +134,7 @@ END;;
 DELIMITER ;
 
 -- create procedures for characgters 
-DELIMITER ;;
+DELIMITER $$
 
 CREATE PROCEDURE attack(
   IN id_of_character_being_attacked INT,
@@ -148,6 +148,7 @@ BEGIN
   DECLARE new_health INT DEFAULT 0;
   
   SET armor = armor_total(id_of_character_being_attacked);
+  RETURN armor;
   
   --attacking item damage
   SELECT i.damage INTO damage
@@ -180,7 +181,7 @@ BEGIN
         DELETE FROM characters WHERE character_id = id_of_character_being_attacked;
       END IF;
     END IF;
-END;;
+END$$
 
 DELIMITER ;
 
