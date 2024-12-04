@@ -110,11 +110,12 @@ RETURNS INT
 DETERMINISTIC
 BEGIN
     -- Declare variables for base armor and equipped armor
-    DECLARE base_armor INT DEFAULT 0;
+    DECLARE character_stats_armor INT DEFAULT 0;
     DECLARE equipped_armor INT DEFAULT 0;
+    DECLARE total_armor INT DEFAULT 0;
 
     -- Get base armor from character_stats
-    SELECT COALESCE(armor, 0) INTO base_armor
+    SELECT COALESCE(armor, 0) INTO character_stats_armor
     FROM character_stats
     WHERE character_id = character_id;
 
@@ -128,8 +129,9 @@ BEGIN
     );
 
     -- Return the sum of base armor and equipped armor
-    RETURN base_armor + equipped_armor;
-END;;
+    SET total_armor = character_stats_armor + equipped_armor;
+    RETURN total_armor;
+END;; 
 
 DELIMITER ;
 
@@ -148,7 +150,7 @@ BEGIN
   DECLARE new_health INT DEFAULT 0;
   
   SET armor = armor_total(id_of_character_being_attacked);
-  RETURN armor;
+  
   
   --attacking item damage
   SELECT i.damage INTO damage
