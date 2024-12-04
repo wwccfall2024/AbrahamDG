@@ -1,6 +1,6 @@
--- Create your tables, views, functions and procedures here!
 CREATE SCHEMA destruction;
 USE destruction;
+
 
 CREATE TABLE players (
   player_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -13,7 +13,7 @@ CREATE TABLE characters(
   character_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
   player_id INT UNSIGNED NOT NULL,
   name VARCHAR(30) NOT NULL,
-  `level` TINYINT UNSIGNED,
+  level TINYINT UNSIGNED,
   CONSTRAINT fk_characters_player FOREIGN KEY (player_id) REFERENCES players(player_id)
 );
 
@@ -68,8 +68,13 @@ DELIMITER $$
 
 -- Views
 CREATE VIEW character_items AS 
-SELECT i.item_id, i.name
-FROM items i
+SELECT c.character_id,
+  c.name AS character_name,
+  i.item_id,
+  i.name AS item_name,
+  i.armor,
+  i.damage
+FROM characters c
 JOIN (
   SELECT item_id, character_id
   FROM inventory
@@ -78,8 +83,9 @@ JOIN (
 
   SELECT item_id, character_id
   FROM equipped
-) AS total_items ON i.item_id = total_items.item_id
-GROUP BY i.item_id, i.name$$
+) AS total_items ON  c.character_id = total_items.item_id
+JOIN items i ON i.item_id = total_items.item_id
+GROUP BY c.character_id, c.name, i.item_id, i.name, i.armor, i.damage;
 
 CREATE VIEW team_items AS
 SELECT i.item_id, i.name
@@ -101,7 +107,7 @@ JOIN (
     FROM team_members
   )
 ) AS combined_player_items ON i.item_id = combined_player_items.item_id
-GROUP BY i.item_id, i.name$$
+GROUP BY i.item_id, i.name;
 
 -- Function for armor
 CREATE FUNCTION armor_total(char_id INT)
@@ -218,32 +224,53 @@ BEGIN
         WHERE tm.team_id = team_id;
 
     -- Declare a handler for the end of the cursor
-    -- DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Debug: Output the team being processed
+    SELECT CONCAT('Processing team_id: ', team_id) AS debug_message;
 
     -- Clear the winners table
     DELETE FROM winners;
 
-    -- Open the cursor
-    OPEN team_cursor;
+    -- Debug: Confirm the winners table was cleared
+    SELECT 'Winners table cleared' AS debug_message;
 
-    -- Loop through each character in the cursor
-    FETCH team_cursor INTO char_id, char_name;
+    -- Check if the team has members
+    IF EXISTS (
+        SELECT 1
+        FROM characters c
+        INNER JOIN team_members tm ON c.character_id = tm.character_id
+        WHERE tm.team_id = team_id
+    ) THEN
+        -- Open the cursor
+        OPEN team_cursor;
 
-    WHILE done = 0 DO
-        -- Insert the character into the winners table
-        INSERT INTO winners (character_id, name)
-        VALUES (char_id, char_name);
-
-        -- Fetch the next row
+        -- Debug: Output cursor fetch progress
         FETCH team_cursor INTO char_id, char_name;
-    END WHILE;
 
-    -- Close the cursor
-    CLOSE team_cursor;
+        WHILE done = 0 DO
+            -- Debug: Output each character being processed
+            SELECT char_id AS debug_char_id, char_name AS debug_char_name;
+
+            -- Insert into the winners table
+            INSERT INTO winners (character_id, name)
+            VALUES (char_id, char_name);
+
+            -- Fetch the next row
+            FETCH team_cursor INTO char_id, char_name;
+        END WHILE;
+
+        -- Close the cursor
+        CLOSE team_cursor;
+
+        -- Debug: Confirm winners were updated
+        SELECT 'Winners updated successfully' AS debug_message;
+    ELSE
+        -- No members found for the team
+        SELECT CONCAT('No members found for team_id: ', team_id) AS debug_message;
+    END IF;
 END$$
 
 -- Reset delimiter to default
 DELIMITER ;
-
-
-
+   
