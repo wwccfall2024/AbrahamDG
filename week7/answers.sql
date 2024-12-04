@@ -85,10 +85,11 @@ JOIN (
   FROM equipped
 ) AS total_items ON  c.character_id = total_items.character_id
 JOIN items i ON i.item_id = total_items.item_id
+ORDER BY item_name ASC;
 GROUP BY c.character_id, c.name, i.item_id, i.name, i.armor, i.damage;
 
 
-CREATE OR REPLACE VIEW team_items AS
+CREATE VIEW team_items AS
 SELECT 
   t.team_id,
   t.name AS team_name,
@@ -106,6 +107,7 @@ JOIN (
 ) AS combined_player_items ON i.item_id = combined_player_items.item_id
 JOIN team_members tm ON tm.character_id = combined_player_items.character_id
 JOIN teams t ON t.team_id = tm.team_id
+ORDER BY item_name ASC;
 GROUP BY t.team_id, t.name, i.item_id, i.name, i.armor, i.damage;
 
 
