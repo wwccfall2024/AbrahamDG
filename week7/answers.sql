@@ -83,31 +83,31 @@ JOIN (
 
   SELECT item_id, character_id
   FROM equipped
-) AS total_items ON  c.character_id = total_items.item_id
+) AS total_items ON  c.character_id = total_items.character_id
 JOIN items i ON i.item_id = total_items.item_id
 GROUP BY c.character_id, c.name, i.item_id, i.name, i.armor, i.damage;
 
-CREATE VIEW team_items AS
-SELECT i.item_id, i.name
+
+CREATE OR REPLACE VIEW team_items AS
+SELECT 
+  t.team_id,
+  t.name AS team_name,
+  i.item_id,
+  i.name AS item_name,
+  i.armor,
+  i.damage
 FROM items i
 JOIN (
-  SELECT item_id
-  FROM inventory inv
-  WHERE inv.character_id IN (
-    SELECT character_id
-    FROM team_members
-  )
-
-  UNION 
-
-  SELECT item_id
-  FROM equipped eq
-  WHERE eq.character_id IN (
-    SELECT character_id
-    FROM team_members
-  )
+  SELECT item_id, character_id
+  FROM inventory
+  UNION
+  SELECT item_id, character_id
+  FROM equipped
 ) AS combined_player_items ON i.item_id = combined_player_items.item_id
-GROUP BY i.item_id, i.name;
+JOIN team_members tm ON tm.character_id = combined_player_items.character_id
+JOIN teams t ON t.team_id = tm.team_id
+GROUP BY t.team_id, t.name, i.item_id, i.name, i.armor, i.damage;
+
 
 -- Function for armor
 CREATE FUNCTION armor_total(char_id INT)
@@ -273,4 +273,4 @@ END$$
 
 -- Reset delimiter to default
 DELIMITER ;
-   
+      
