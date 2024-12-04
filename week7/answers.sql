@@ -218,7 +218,7 @@ BEGIN
         WHERE tm.team_id = team_id;
 
     -- Declare a handler for the end of the cursor
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    -- DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
 
     -- Clear the winners table
     DELETE FROM winners;
