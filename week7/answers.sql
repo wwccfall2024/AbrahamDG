@@ -150,14 +150,14 @@ BEGIN
   SET armor = armor_total(id_of_character_being_attacked);
   
   --attacking item damage
-  SELECT damage INTO damage
+  SELECT i.damage INTO damage
   FROM items
   WHERE items.item_id = id_of_equipped_item_used_for_attack;
   
   -- calc effective damage
    SET effective_damage = damage - armor;
   -- if statement to make sure that the ED is negative so no damage delt
-   IF effective_damage <= 0 THEN
+   IF effective_damage > 0 THEN
       SELECT health INTO current_health
       FROM character_stats
       WHERE character_id = id_of_character_being_attacked;
