@@ -93,7 +93,7 @@ SELECT DISTINCT
     t.name AS team_name,
     c.character_id,
     c.name AS character_name,
-    i.name AS item_name,
+    COALESCE(i.name, '') AS item_name,
     i.armor,
     i.damage
 FROM teams t
@@ -111,7 +111,7 @@ ORDER BY t.team_id, i.name;
 
 DELIMITER $$
 -- Function for armor
-CREATE FUNCTION armor_total(char_id INT)
+CREATE FUNCTION armor_total(character_id INT)
 RETURNS INT
 DETERMINISTIC
 BEGIN
@@ -121,17 +121,17 @@ BEGIN
     DECLARE total_armor INT DEFAULT 0;
 
     -- Get base armor from character_stats
-    SELECT COALESCE(armor, 0) INTO character_stats_armor
-    FROM character_stats
-    WHERE character_id = char_id;
+    SELECT SUM(cs.armor) INTO character_stats_armor
+    FROM character_stats cs
+    WHERE cs.character_id = character_id;
 
     -- Get total armor from equipped items
-    SELECT COALESCE(SUM(armor), 0) INTO equipped_armor
-    FROM items
-    WHERE item_id IN (
-        SELECT item_id
-        FROM equipped
-        WHERE character_id = char_id
+    SELECT SUM(i.armor) INTO equipped_armor
+    FROM equipped e
+    INNER JOIN items i
+      ON e.items_id = i.items_id
+      WHERE e.character_id = character_id;
+   
     );
 
     -- Return the sum of base armor and equipped armor
