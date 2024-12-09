@@ -208,7 +208,6 @@ BEGIN
     WHERE equipped_id = equipped_id;
 END$$
 
-DELIMITER $$
 
 CREATE OR REPLACE PROCEDURE set_winners (IN team_id INT)
 BEGIN
