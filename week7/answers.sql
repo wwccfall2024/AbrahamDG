@@ -21,6 +21,7 @@ CREATE TABLE winners(
   character_id INT UNSIGNED NOT NULL,
   name VARCHAR(30) NOT NULL,
   CONSTRAINT fk_winners_character FOREIGN KEY (character_id) REFERENCES characters(character_id)
+  ON DELETE CASCADE
 );
 
 CREATE TABLE character_stats(
@@ -28,6 +29,7 @@ CREATE TABLE character_stats(
   health TINYINT UNSIGNED,
   armor TINYINT UNSIGNED,
   CONSTRAINT fk_character_stats_stats FOREIGN KEY (character_id) REFERENCES characters(character_id)
+  ON DELETE CASCADE
 );
 
 CREATE TABLE teams(
@@ -41,6 +43,7 @@ CREATE TABLE team_members(
   character_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_team_member_teams FOREIGN KEY (team_id) REFERENCES teams(team_id),
   CONSTRAINT fk_team_member_characters FOREIGN KEY (character_id) REFERENCES characters(character_id)
+  ON DELETE CASCADE
 );
 
 CREATE TABLE items(
@@ -53,14 +56,14 @@ CREATE TABLE inventory(
   inventory_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
   character_id INT UNSIGNED NOT NULL,
   item_id INT UNSIGNED NOT NULL,
-  CONSTRAINT fk_inventory_characters FOREIGN KEY (character_id) REFERENCES characters(character_id),
+  CONSTRAINT fk_inventory_characters FOREIGN KEY (character_id) REFERENCES characters(character_id) ON DELETE CASCADE,
   CONSTRAINT fk_inventory_items FOREIGN KEY (item_id) REFERENCES items(item_id)
 );
 CREATE TABLE equipped(
   equipped_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
   character_id INT UNSIGNED NOT NULL,
   item_id INT UNSIGNED NOT NULL,
-  CONSTRAINT fk_equipped_characters FOREIGN KEY (character_id) REFERENCES characters(character_id),
+  CONSTRAINT fk_equipped_characters FOREIGN KEY (character_id) REFERENCES characters(character_id) ON DELETE CASCADE,
   CONSTRAINT fk_equipped_items FOREIGN KEY (item_id) REFERENCES items(item_id)
 );
 
