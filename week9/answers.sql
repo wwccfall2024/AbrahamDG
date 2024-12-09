@@ -49,17 +49,15 @@ FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE SET NULL
 -- notification view 
 CREATE VIEW notification_posts AS
 SELECT
-    notif.user_id,
+    notif.user_id AS notification_user_id,
     users.first_name,
     users.last_name,
     posts.post_id,
     posts.content
 FROM 
     notifications notif
-LEFT JOIN 
-    posts ON notif.post_id = posts.post_id
-LEFT JOIN 
-    users ON posts.post_id = notif.post_id;
+LEFT JOIN posts ON notif.post_id = posts.post_id
+LEFT JOIN users post_creator ON posts.user_id = post_creator.user_id;
 
 
 DELIMITER $$
