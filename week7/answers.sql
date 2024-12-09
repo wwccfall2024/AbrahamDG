@@ -70,40 +70,40 @@ CREATE TABLE equipped(
 DELIMITER $$
 CREATE OR REPLACE VIEW character_items AS 
 SELECT 
-  c.character_id,
-  c.name AS character_name,
-  i.item_id,
-  i.name AS item_name,
-  i.armor,
-  i.damage
+    c.character_id,
+    c.name AS character_name,
+    i.item_id,
+    i.name AS item_name,
+    i.armor,
+    i.damage
 FROM characters c
 LEFT JOIN (
-  SELECT item_id, character_id
-  FROM inventory
-  UNION 
-  SELECT item_id, character_id
-  FROM equipped
-) AS total_items ON c.character_id = total_items.character_id
-LEFT JOIN items i ON i.item_id = total_items.item_id;
+    SELECT DISTINCT item_id, character_id
+    FROM inventory
+    UNION 
+    SELECT DISTINCT item_id, character_id
+    FROM equipped
+) AS combined_items ON c.character_id = combined_items.character_id
+LEFT JOIN items i ON i.item_id = combined_items.item_id;
 
 CREATE OR REPLACE VIEW team_items AS
 SELECT DISTINCT
-  tm.team_id,
-  t.name AS team_name,
-  c.character_id,
-  c.name AS character_name,
-  i.name AS item_name,
-  i.armor,
-  i.damage
+    t.team_id,
+    t.name AS team_name,
+    c.character_id,
+    c.name AS character_name,
+    i.name AS item_name,
+    i.armor,
+    i.damage
 FROM teams t
 INNER JOIN team_members tm ON t.team_id = tm.team_id
 INNER JOIN characters c ON tm.character_id = c.character_id
 LEFT JOIN (
-  SELECT item_id, character_id
-  FROM inventory
-  UNION
-  SELECT item_id, character_id
-  FROM equipped
+    SELECT item_id, character_id
+    FROM inventory
+    UNION
+    SELECT item_id, character_id
+    FROM equipped
 ) AS combined_items ON c.character_id = combined_items.character_id
 LEFT JOIN items i ON i.item_id = combined_items.item_id;
 
@@ -210,7 +210,7 @@ END$$
 
 DELIMITER $$
 
-CREATE PROCEDURE set_winners (IN team_id INT)
+CREATE OR REPLACE PROCEDURE set_winners (IN team_id INT)
 BEGIN
     -- Declare variables for cursor
     DECLARE done INT DEFAULT 0;
