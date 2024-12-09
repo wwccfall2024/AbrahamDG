@@ -67,7 +67,6 @@ CREATE TABLE equipped(
   CONSTRAINT fk_equipped_items FOREIGN KEY (item_id) REFERENCES items(item_id)
 );
 
-DELIMITER $$
 CREATE OR REPLACE VIEW character_items AS 
 SELECT 
     c.character_id,
@@ -107,7 +106,7 @@ LEFT JOIN (
 ) AS combined_items ON c.character_id = combined_items.character_id
 LEFT JOIN items i ON i.item_id = combined_items.item_id;
 
-
+DELIMITER $$
 -- Function for armor
 CREATE FUNCTION armor_total(char_id INT)
 RETURNS INT
@@ -209,7 +208,7 @@ BEGIN
 END$$
 
 
-CREATE OR REPLACE PROCEDURE set_winners (IN team_id INT)
+CREATE PROCEDURE set_winners (IN team_id INT)
 BEGIN
     -- Declare variables for cursor
     DECLARE done INT DEFAULT 0;
