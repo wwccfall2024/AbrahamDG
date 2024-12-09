@@ -83,7 +83,9 @@ LEFT JOIN (
     SELECT DISTINCT item_id, character_id
     FROM equipped
 ) AS combined_items ON c.character_id = combined_items.character_id
-LEFT JOIN items i ON i.item_id = combined_items.item_id;
+LEFT JOIN items i ON i.item_id = combined_items.item_id
+ORDER BY c.character_id, i.name;
+
 
 CREATE OR REPLACE VIEW team_items AS
 SELECT DISTINCT
@@ -104,7 +106,8 @@ LEFT JOIN (
     SELECT item_id, character_id
     FROM equipped
 ) AS combined_items ON c.character_id = combined_items.character_id
-LEFT JOIN items i ON i.item_id = combined_items.item_id;
+LEFT JOIN items i ON i.item_id = combined_items.item_id
+ORDER BY t.team_id, i.name;
 
 DELIMITER $$
 -- Function for armor
