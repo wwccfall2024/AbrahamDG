@@ -62,57 +62,42 @@ LEFT JOIN
     users ON posts.post_id = notif.post_id;
 
 
-DELIMITER //
-CREATE PROCEDURE AddNewUserNotification(IN new_user_id INT, IN new_first_name VARCHAR(50), IN new_last_name VARCHAR(50))
+DELIMITER $$
+
+CREATE PROCEDURE AddNewUser(
+    IN new_user_id INT,
+    IN new_first_name VARCHAR(50),
+    IN new_last_name VARCHAR(50)
+)
 BEGIN
-    DECLARE finished INT DEFAULT 0;
-    DECLARE current_user_id INT;
+    -- Insert notifications for all existing users except the new user
+    INSERT INTO notifications (user_id, post_id)
+    SELECT user_id, NULL
+    FROM users
+    WHERE user_id != new_user_id;
 
-    -- Create a cursor to loop through all existing users except the new one
-    DECLARE user_cursor CURSOR FOR 
-    SELECT user_id FROM users WHERE user_id != new_user_id;
+    -- Insert a post for the new user
+    INSERT INTO posts (user_id, content)
+    VALUES (
+        new_user_id,
+        CONCAT(new_first_name, ' ', new_last_name, ' just joined!')
+    );
+END$$
 
-    -- Declare a handler to handle when the cursor has no more rows
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
-
-    -- Open the cursor
-    OPEN user_cursor;
-
-    read_loop: LOOP
-        -- Fetch user_id from the cursor
-        FETCH user_cursor INTO current_user_id;
-
-        -- Exit the loop if there are no more rows
-        IF finished = 1 THEN
-            LEAVE read_loop;
-        END IF;
-
-        -- Insert notification for the current user
-        INSERT INTO notifications (user_id, post_id)
-        VALUES (current_user_id, NULL);
-
-        -- Insert content for the notification (new user has joined)
-        INSERT INTO posts (user_id, content)
-        VALUES (new_user_id, CONCAT(new_first_name, ' ', new_last_name, ' just joined!'));
-    END LOOP;
-
-    -- Close the cursor
-    CLOSE user_cursor;
-END //
 DELIMITER ;
 
 
-DELIMITER //
+DELIMITER $$
 CREATE PROCEDURE DeleteOldSessions()
 BEGIN
     DELETE FROM sessions
     WHERE updated_on < NOW() - INTERVAL 2 HOUR;
-END //
+END$$
 DELIMITER ;
 
 
 
-DELIMITER //
+DELIMITER $$
 CREATE PROCEDURE add_post(IN user_id INT, IN content VARCHAR(250))
 BEGIN
     DECLARE new_post_id INT;
@@ -130,7 +115,7 @@ BEGIN
     FROM friends
     WHERE user_id = add_post.user_id;
 
-END //
+END$$
 
 DELIMITER ;
 
