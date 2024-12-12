@@ -67,79 +67,81 @@ CREATE TABLE equipped(
   CONSTRAINT fk_equipped_items FOREIGN KEY (item_id) REFERENCES items(item_id)
 );
 
-CREATE OR REPLACE VIEW character_items AS 
+CREATE OR REPLACE VIEW character_items AS
 SELECT 
     c.character_id,
     c.name AS character_name,
-    i.item_id,
     i.name AS item_name,
     i.armor,
     i.damage
 FROM characters c
-LEFT JOIN (
-    SELECT DISTINCT item_id, character_id
-    FROM inventory
-    UNION 
-    SELECT DISTINCT item_id, character_id
-    FROM equipped
-) AS combined_items ON c.character_id = combined_items.character_id
-LEFT JOIN items i ON i.item_id = combined_items.item_id
-ORDER BY c.character_id, i.name;
+LEFT JOIN inventory inv ON c.character_id = inv.character_id
+LEFT JOIN items i ON inv.item_id = i.item_id
+UNION
+SELECT 
+    c.character_id,
+    c.name AS character_name,
+    i.name AS item_name,
+    i.armor,
+    i.damage
+FROM characters c
+LEFT JOIN equipped e ON c.character_id = e.character_id
+LEFT JOIN items i ON e.item_id = i.item_id;
 
 
 CREATE OR REPLACE VIEW team_items AS
-SELECT DISTINCT
+SELECT 
     t.team_id,
     t.name AS team_name,
-    c.character_id,
-    c.name AS character_name,
-    COALESCE(i.name, '') AS item_name,
+    i.name AS item_name,
     i.armor,
     i.damage
 FROM teams t
-INNER JOIN team_members tm ON t.team_id = tm.team_id
-INNER JOIN characters c ON tm.character_id = c.character_id
-LEFT JOIN (
-    SELECT item_id, character_id
-    FROM inventory
-    UNION
-    SELECT item_id, character_id
-    FROM equipped
-) AS combined_items ON c.character_id = combined_items.character_id
-LEFT JOIN items i ON i.item_id = combined_items.item_id
-ORDER BY t.team_id, i.name;
+JOIN team_members tm ON t.team_id = tm.team_id
+LEFT JOIN inventory inv ON tm.character_id = inv.character_id
+LEFT JOIN items i ON inv.item_id = i.item_id
+UNION
+SELECT 
+    t.team_id,
+    t.name AS team_name,
+    i.name AS item_name,
+    i.armor,
+    i.damage
+FROM teams t
+JOIN team_members tm ON t.team_id = tm.team_id
+LEFT JOIN equipped e ON tm.character_id = e.character_id
+LEFT JOIN items i ON e.item_id = i.item_id;
 
-
--- Function for armor
 DELIMITER $$
-
-CREATE FUNCTION armor_total(character_id INT)
+-- Function for armor
+CREATE FUNCTION armor_total(char_id INT)
 RETURNS INT
 DETERMINISTIC
 BEGIN
     -- Declare variables for base armor and equipped armor
-    DECLARE base_armor INT DEFAULT 0;
+    DECLARE character_stats_armor INT DEFAULT 0;
     DECLARE equipped_armor INT DEFAULT 0;
     DECLARE total_armor INT DEFAULT 0;
 
     -- Get base armor from character_stats
-    SELECT SUM(cs.armor) INTO base_armor
-    FROM character_stats cs
-    WHERE cs.character_id = character_id;
+    SELECT COALESCE(armor, 0) INTO character_stats_armor
+    FROM character_stats
+    WHERE character_id = char_id;
 
     -- Get total armor from equipped items
-    SELECT SUM(i.armor) INTO equipped_armor
-    FROM equipped e
-    INNER JOIN items i
-      ON e.item_id = i.item_id
-    WHERE e.character_id = character_id;
+    SELECT COALESCE(SUM(armor), 0) INTO equipped_armor
+    FROM items
+    WHERE item_id IN (
+        SELECT item_id
+        FROM equipped
+        WHERE character_id = char_id
+    );
 
-    -- Calculate total armor
-    SET total_armor = base_armor + equipped_armor;
+    -- Return the sum of base armor and equipped armor
+    SET total_armor = character_stats_armor + equipped_armor;
     RETURN total_armor;
 END$$
 
-  
 -- Procedures
 CREATE PROCEDURE attack (
   IN id_of_character_being_attacked INT,
@@ -149,29 +151,41 @@ BEGIN
   DECLARE armor INT DEFAULT 0;
   DECLARE damage INT DEFAULT 0;
   DECLARE effective_damage INT DEFAULT 0;
+  DECLARE current_health INT DEFAULT 0;
+  DECLARE new_health INT DEFAULT 0;
 
-  -- Get total armor for the character being attacked
   SET armor = armor_total(id_of_character_being_attacked);
 
-  -- Get the damage value of the attacking item
-  SELECT damage INTO damage
+  -- Attacking item damage
+  SELECT items.damage INTO damage
   FROM items
-  WHERE item_id = id_of_equipped_item_used_for_attack;
+  WHERE items.item_id = id_of_equipped_item_used_for_attack;
 
   -- Calculate effective damage
-  SET effective_damage = GREATEST(damage - armor, 0);
+  SET effective_damage = damage - armor;
 
-  -- Proceed only if effective damage is positive
+  -- Only proceed if effective damage is positive
   IF effective_damage > 0 THEN
-    -- Update health or delete character if they die
-    UPDATE character_stats
-    SET health = health - effective_damage
+    SELECT health INTO current_health
+    FROM character_stats
     WHERE character_id = id_of_character_being_attacked;
 
-    -- Delete character and related data if health is 0 or less
-    DELETE FROM characters
-    WHERE character_id = id_of_character_being_attacked
-      AND (SELECT health FROM character_stats WHERE character_id = id_of_character_being_attacked) <= 0;
+    -- Calculate new health of the character
+    SET new_health = current_health - effective_damage;
+
+    -- Update health or delete character if they die
+    IF new_health > 0 THEN
+      UPDATE character_stats
+      SET health = new_health
+      WHERE character_id = id_of_character_being_attacked;
+    ELSE
+    
+      DELETE FROM inventory WHERE character_id = id_of_character_being_attacked;
+      DELETE FROM equipped WHERE character_id = id_of_character_being_attacked;
+      DELETE FROM team_members WHERE character_id = id_of_character_being_attacked;
+      DELETE FROM character_stats WHERE character_id = id_of_character_being_attacked;
+      DELETE FROM characters WHERE character_id = id_of_character_being_attacked;
+    END IF;
   END IF;
 END$$
 
@@ -199,7 +213,6 @@ BEGIN
     DELETE FROM equipped
     WHERE equipped_id = equipped_id;
 END$$
-
 
 CREATE PROCEDURE set_winners (IN team_id INT)
 BEGIN
