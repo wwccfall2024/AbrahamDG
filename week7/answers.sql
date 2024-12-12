@@ -85,8 +85,8 @@ SELECT
     i.armor,
     i.damage
 FROM characters c
-LEFT JOIN equipped e ON c.character_id = e.character_id
-LEFT JOIN items i ON e.item_id = i.item_id
+LEFT OUTER JOIN equipped e ON c.character_id = e.character_id
+LEFT OUTER JOIN items i ON e.item_id = i.item_id
   ORDER BY c.character_id = i.name;
 
 
@@ -98,9 +98,9 @@ SELECT
     i.armor,
     i.damage
 FROM teams t
-JOIN team_members tm ON t.team_id = tm.team_id
-LEFT JOIN inventory inv ON tm.character_id = inv.character_id
-LEFT JOIN items i ON inv.item_id = i.item_id
+INNER JOIN team_members tm ON t.team_id = tm.team_id
+INNER JOIN inventory inv ON tm.character_id = inv.character_id
+INNER JOIN items i ON inv.item_id = i.item_id
 UNION
 SELECT 
     t.team_id,
@@ -109,9 +109,10 @@ SELECT
     i.armor,
     i.damage
 FROM teams t
-JOIN team_members tm ON t.team_id = tm.team_id
-LEFT JOIN equipped e ON tm.character_id = e.character_id
-LEFT JOIN items i ON e.item_id = i.item_id;
+INNER JOIN team_members tm ON t.team_id = tm.team_id
+INNER JOIN equipped e ON tm.character_id = e.character_id
+INNER JOIN items i ON e.item_id = i.item_id;
+
 
 DELIMITER $$
 -- Function for armor
