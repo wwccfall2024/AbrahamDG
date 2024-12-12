@@ -56,8 +56,12 @@ SELECT
     posts.content
 FROM 
     notifications notif
-LEFT JOIN posts ON notif.post_id = posts.post_id
-LEFT JOIN users post_creator ON posts.user_id = post_creator.user_id;
+INNER JOIN posts ON posts.post_id = notif.post_id
+INNER JOIN users u ON posts.user_id = u.user_id
+ORDER BY posts.post_id;
+
+
+
 
 
 DELIMITER $$
@@ -82,20 +86,9 @@ BEGIN
     );
 END$$
 
-DELIMITER ;
 
+    
 
-DELIMITER $$
-CREATE PROCEDURE DeleteOldSessions()
-BEGIN
-    DELETE FROM sessions
-    WHERE updated_on < NOW() - INTERVAL 2 HOUR;
-END$$
-DELIMITER ;
-
-
-
-DELIMITER $$
 CREATE PROCEDURE add_post(IN user_id INT, IN content VARCHAR(250))
 BEGIN
     DECLARE new_post_id INT;
@@ -115,5 +108,15 @@ BEGIN
 
 END$$
 
+
+DELIMITER $$
+CREATE PROCEDURE DeleteOldSessions()
+BEGIN
+    DELETE FROM sessions
+    WHERE updated_on < NOW() - INTERVAL 2 HOUR;
+END$$
+
+
 DELIMITER ;
+
 
