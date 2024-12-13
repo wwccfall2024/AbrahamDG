@@ -28,15 +28,15 @@ FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
 FOREIGN KEY (friend_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- to anyone looking through my code if get an error 1452 look at this table. Might save you the headache. 
-CREATE TABLE posts(
-post_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
-user_id INT UNSIGNED,
-created_on TIMESTAMP NOT NULL DEFAULT NOW(),
-updated_on TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW(),
-content VARCHAR (250) NOT NULL,
-FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-)AUTO_INCREMENT = 6;
+
+CREATE TABLE posts (
+    post_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    user_id INT UNSIGNED NOT NULL,
+    content VARCHAR(250) NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_on TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
 
 CREATE TABLE notifications(
 notification_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -62,16 +62,23 @@ ORDER BY posts.post_id;
 
 
 
-
-
 DELIMITER $$
 
 CREATE PROCEDURE AddNewUser(
-    IN new_user_id INT,
     IN new_first_name VARCHAR(50),
-    IN new_last_name VARCHAR(50)
+    IN new_last_name VARCHAR(50),
+    IN new_email VARCHAR(100)
 )
 BEGIN
+    DECLARE new_user_id INT;
+
+    -- Insert the new user into the users table
+    INSERT INTO users (first_name, last_name, email)
+    VALUES (new_first_name, new_last_name, new_email);
+
+    -- Get the new user's ID
+    SET new_user_id = LAST_INSERT_ID();
+
     -- Insert notifications for all existing users except the new user
     INSERT INTO notifications (user_id, post_id)
     SELECT user_id, NULL
@@ -84,6 +91,12 @@ BEGIN
         new_user_id,
         CONCAT(new_first_name, ' ', new_last_name, ' just joined!')
     );
+
+    -- Notify friends 
+    INSERT INTO notifications (user_id, post_id)
+    SELECT friend_id, LAST_INSERT_ID()
+    FROM friends
+    WHERE user_id = new_user_id;
 END$$
 
 
@@ -109,7 +122,6 @@ BEGIN
 END$$
 
 
-DELIMITER $$
 CREATE PROCEDURE DeleteOldSessions()
 BEGIN
     DELETE FROM sessions
