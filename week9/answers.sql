@@ -17,15 +17,21 @@ session_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
 user_id INT UNSIGNED,
 created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 updated_on TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW(),
-FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+FOREIGN KEY (user_id) REFERENCES users(user_id) 
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 CREATE TABLE friends(
 user_friend_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
 user_id INT UNSIGNED,
 friend_id INT UNSIGNED,
-FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-FOREIGN KEY (friend_id) REFERENCES users(user_id) ON DELETE CASCADE
+FOREIGN KEY (user_id) REFERENCES users(user_id) 
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+FOREIGN KEY (friend_id) REFERENCES users(user_id) 
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 
@@ -35,15 +41,21 @@ CREATE TABLE posts (
     content VARCHAR(250) NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_on TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW(),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) 
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 CREATE TABLE notifications(
 notification_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
 user_id INT UNSIGNED,
 post_id INT UNSIGNED NULL,
-FOREIGN KEY (user_id) REFERENCES users(user_id),
-FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE SET NULL
+FOREIGN KEY (user_id) REFERENCES users(user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+FOREIGN KEY (post_id) REFERENCES posts(post_id) 
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 
@@ -58,7 +70,7 @@ SELECT
     p.content
 FROM 
     notifications notif
-INNER JOIN posts p ON p.post_id = notif.post_id
+INNER JOIN posts p ON notif.post_id = p.post_id
 INNER JOIN users u ON p.user_id = u.user_id;
 
 
