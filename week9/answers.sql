@@ -46,6 +46,8 @@ FOREIGN KEY (user_id) REFERENCES users(user_id),
 FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE SET NULL
 );
 
+
+
 -- notification view 
 CREATE VIEW notification_posts AS
 SELECT
@@ -56,9 +58,9 @@ SELECT
     p.content
 FROM 
     notifications notif
-INNER JOIN posts p ON posts.post_id = notif.post_id
-INNER JOIN users u ON posts.user_id = u.user_id
-ORDER BY posts.post_id;
+INNER JOIN posts p ON p.post_id = notif.post_id
+INNER JOIN users u ON p.user_id = u.user_id;
+
 
 
 
