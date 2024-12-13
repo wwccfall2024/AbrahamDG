@@ -50,13 +50,13 @@ FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE SET NULL
 CREATE VIEW notification_posts AS
 SELECT
     notif.user_id AS notification_user_id,
-    users.first_name,
-    users.last_name,
-    posts.post_id,
-    posts.content
+    u.first_name,
+    u.last_name,
+    p.post_id,
+    p.content
 FROM 
     notifications notif
-INNER JOIN posts ON posts.post_id = notif.post_id
+INNER JOIN posts p ON posts.post_id = notif.post_id
 INNER JOIN users u ON posts.user_id = u.user_id
 ORDER BY posts.post_id;
 
