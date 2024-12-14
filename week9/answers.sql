@@ -26,34 +26,34 @@ CREATE TABLE friends(
 user_friend_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 user_id INT UNSIGNED,
 friend_id INT UNSIGNED,
-FOREIGN KEY (user_id) REFERENCES users(user_id) 
+CONSTRAINT fk_friends_user_id FOREIGN KEY (user_id) REFERENCES users(user_id) 
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-FOREIGN KEY (friend_id) REFERENCES users(user_id) 
+CONSTRAINT fk_friends_friends_id FOREIGN KEY (friend_id) REFERENCES users(user_id) 
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
 
 
 CREATE TABLE posts (
-    post_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    post_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
     user_id INT UNSIGNED NOT NULL,
     content VARCHAR(250) NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_on TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW(),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) 
+    CONSTRAINT fk_posts_user_id FOREIGN KEY (user_id) REFERENCES users(user_id) 
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
 CREATE TABLE notifications(
-notification_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+notification_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
 user_id INT UNSIGNED NOT NULL,
 post_id INT UNSIGNED NOT NULL,
-FOREIGN KEY (user_id) REFERENCES users(user_id)
+CONSTRAINT fk_notifications_user_id FOREIGN KEY (user_id) REFERENCES users(user_id)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-FOREIGN KEY (post_id) REFERENCES posts(post_id) 
+CONSTRAINT fk_notifications_post FOREIGN KEY (post_id) REFERENCES posts(post_id) 
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
