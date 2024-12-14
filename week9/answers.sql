@@ -14,10 +14,10 @@ created_on TIMESTAMP NOT NULL DEFAULT NOW()
 
 CREATE TABLE sessions(
 session_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
-user_id INT UNSIGNED,
+user_id INT UNSIGNED NOT NULL, 
 created_on TIMESTAMP NOT NULL DEFAULT NOW(),
 updated_on TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW(),
-FOREIGN KEY (user_id) REFERENCES users(user_id) 
+CONSTRAINT fk_sessions_userID FOREIGN KEY (user_id) REFERENCES users(user_id) 
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
@@ -78,41 +78,53 @@ INNER JOIN users u ON p.user_id = u.user_id;
 
 DELIMITER $$
 
-CREATE PROCEDURE AddNewUser(
-    IN new_first_name VARCHAR(50),
-    IN new_last_name VARCHAR(50),
-    IN new_email VARCHAR(100)
-)
+CREATE TRIGGER after_user_insert
+AFTER INSERT ON users
+FOR EACH ROW
 BEGIN
-    DECLARE new_user_id INT;
+    DECLARE done INT DEFAULT 0;
+    DECLARE existing_user_id INT;
 
-    -- Insert the new user into the users table
-    INSERT INTO users (first_name, last_name, email)
-    VALUES (new_first_name, new_last_name, new_email);
+    -- Declare a cursor for iterating through existing users
+    DECLARE user_cursor CURSOR FOR
+    SELECT user_id FROM users WHERE user_id != NEW.user_id;
 
-    -- Get the new user's ID
-    SET new_user_id = LAST_INSERT_ID();
+    -- Declare a NOT FOUND handler to exit the loop
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
 
-    -- Insert notifications for all existing users except the new user
-    INSERT INTO notifications (user_id, post_id)
-    SELECT user_id, NULL
-    FROM users
-    WHERE user_id != new_user_id;
+    -- Open the cursor
+    OPEN user_cursor;
+
+    user_loop: LOOP
+        -- Fetch the next user ID
+        FETCH user_cursor INTO existing_user_id;
+
+        -- Exit the loop if there are no more rows
+        IF done THEN
+            LEAVE user_loop;
+        END IF;
+
+        -- Insert a notification for the existing user
+        INSERT INTO notifications (user_id, post_id)
+        VALUES (existing_user_id, NULL);
+    END LOOP;
+
+    -- Close the cursor
+    CLOSE user_cursor;
 
     -- Insert a post for the new user
     INSERT INTO posts (user_id, content)
     VALUES (
-        new_user_id,
-        CONCAT(new_first_name, ' ', new_last_name, ' just joined!')
+        NEW.user_id,
+        CONCAT(NEW.first_name, ' ', NEW.last_name, ' just joined!')
     );
 
-    -- Notify friends 
+    -- Notify the new user's friends
     INSERT INTO notifications (user_id, post_id)
     SELECT friend_id, LAST_INSERT_ID()
     FROM friends
-    WHERE user_id = new_user_id;
+    WHERE user_id = NEW.user_id;
 END$$
-
 
     
 
@@ -136,7 +148,9 @@ BEGIN
 END$$
 
 
-CREATE PROCEDURE DeleteOldSessions()
+CREATE EVENT Delete_Old_Sessions_Event
+ON SCHEDULE EVERY 1 HOUR
+DO
 BEGIN
     DELETE FROM sessions
     WHERE updated_on < NOW() - INTERVAL 2 HOUR;
